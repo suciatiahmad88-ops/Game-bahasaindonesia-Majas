@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Majas - Media Pembelajaran Interaktif SD Kelas 5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#00b4d8',
+                            darkblue: '#0077b6',
+                            yellow: '#ffb703',
+                            orange: '#fb8500',
+                            purple: '#7209b7',
+                            pink: '#f72585',
+                            green: '#38b000',
+                            softbg: '#f8fafc'
+                        }
+                    },
+                    fontFamily: {
+                        nunito: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+            user-select: none;
+        }
+        .bounce-hover:hover {
+            transform: translateY(-4px) scale(1.02);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+        .pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .flip-card {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e0f2fe;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="bg-white border-b-4 border-sky-300 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('beranda')">
+                <div class="w-12 h-12 bg-gradient-to-tr from-brand-orange to-brand-yellow rounded-2xl flex items-center justify-center text-white text-2xl shadow-md transform -rotate-3">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-tight">Petualangan <span class="text-brand-orange">Majas!</span></h1>
+                    <p class="text-xs font-bold text-sky-600">Bahasa Indonesia Kelas 5 SD</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center space-x-3 sm:space-x-6 bg-sky-50 px-4 py-2 rounded-2xl border border-sky-200">
+                <div class="flex items-center space-x-2" title="Total Skor Anda">
+                    <i class="fa-solid fa-star text-amber-400 text-xl animate-bounce"></i>
+                    <span id="user-score" class="font-extrabold text-lg text-slate-700">0</span>
+                </div>
+                <div class="h-6 w-px bg-sky-200"></div>
+                <div class="flex items-center space-x-2" title="Level Petualangan">
+                    <i class="fa-solid fa-trophy text-amber-500 text-xl"></i>
+                    <span id="user-level" class="font-bold text-sm text-slate-700">Pemula</span>
+                </div>
+                <div class="h-6 w-px bg-sky-200"></div>
+                <button id="sound-btn" onclick="toggleSound()" class="text-slate-600 hover:text-brand-orange transition-colors" title="Matikan/Hidupkan Suara">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- NAVIGATION MENU -->
+        <nav class="bg-sky-50 border-t border-sky-100 px-2 overflow-x-auto">
+            <div class="max-w-7xl mx-auto flex space-x-1 sm:space-x-2 py-2 min-w-max">
+                <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 bg-brand-blue text-white shadow">
+                    🏠 <span>Beranda</span>
+                </button>
+                <button onclick="switchTab('materi')" id="nav-materi" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 text-slate-600 hover:bg-white transition">
+                    📚 <span>Materi</span>
+                </button>
+                <button onclick="switchTab('simulasi')" id="nav-simulasi" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 text-slate-600 hover:bg-white transition">
+                    🔬 <span>Simulasi</span>
+                </button>
+                <button onclick="switchTab('permainan')" id="nav-permainan" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 text-slate-600 hover:bg-white transition">
+                    🎮 <span>Permainan</span>
+                </button>
+                <button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 text-slate-600 hover:bg-white transition">
+                    📝 <span>Kuis</span>
+                </button>
+                <button onclick="switchTab('hasil')" id="nav-hasil" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 text-slate-600 hover:bg-white transition">
+                    🏆 <span>Hasil</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- SECTION 1: BERANDA -->
+        <section id="sec-beranda" class="tab-content block space-y-6">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden shadow-xl">
+                <div class="absolute -right-10 -bottom-10 opacity-20 text-white text-9xl">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div class="max-w-2xl relative z-10 space-y-4">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase border border-white/30">
+                        Kelas 5 Sekolah Dasar
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-black leading-tight">Jadilah Detektif Bahasa & Kuasai Indahnya Majas! ✨</h2>
+                    <p class="text-sky-100 text-sm sm:text-base font-medium">
+                        Halo Teman-teman! Mari belajar membedakan <b>Personifikasi</b>, <b>Hiperbola</b>, dan <b>Metafora</b> melalui permainan seru dan tantangan menarik!
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="switchTab('materi')" class="bg-brand-yellow hover:bg-amber-400 text-slate-900 font-extrabold px-6 py-3 rounded-2xl shadow-lg bounce-hover flex items-center gap-2 text-base">
+                            <i class="fa-solid fa-play"></i> Mulai Belajar
+                        </button>
+                        <button onclick="switchTab('permainan')" class="bg-white/20 hover:bg-white/30 text-white font-extrabold px-6 py-3 rounded-2xl backdrop-blur-md border border-white/30 flex items-center gap-2 text-base">
+                            <i class="fa-solid fa-gamepad"></i> Langsung Main
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Objective Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-3xl border-2 border-amber-200 card-shadow hover:border-amber-400 transition">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+                        <i class="fa-solid fa-tree"></i>
+                    </div>
+                    <h3 class="font-extrabold text-xl mb-2 text-slate-800">Personifikasi</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Benda mati yang bertingkah laku seolah-olah hidup dan bernapas seperti manusia.
+                    </p>
+                    <div class="mt-4 text-xs font-bold bg-amber-50 text-amber-700 p-2 rounded-xl border border-amber-100">
+                        Contoh: <i>"Awan menari-nari di langit."</i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border-2 border-purple-200 card-shadow hover:border-purple-400 transition">
+                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 class="font-extrabold text-xl mb-2 text-slate-800">Hiperbola</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Ungkapan yang berlebihan dan dramatis untuk memberikan kesan yang sangat kuat.
+                    </p>
+                    <div class="mt-4 text-xs font-bold bg-purple-50 text-purple-700 p-2 rounded-xl border border-purple-100">
+                        Contoh: <i>"Suaranya menggelegar membelah bumi."</i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border-2 border-emerald-200 card-shadow hover:border-emerald-400 transition">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <h3 class="font-extrabold text-xl mb-2 text-slate-800">Metafora</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Pembandingan langsung dua hal yang berbeda tanpa menggunakan kata pembanding.
+                    </p>
+                    <div class="mt-4 text-xs font-bold bg-emerald-50 text-emerald-700 p-2 rounded-xl border border-emerald-100">
+                        Contoh: <i>"Perpustakaan adalah gudang ilmu."</i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Dashboard Preview -->
+            <div class="bg-white p-6 rounded-3xl card-shadow border border-slate-100">
+                <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-brand-blue"></i> Progress Petualanganmu
+                </h3>
+                <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden mb-2">
+                    <div id="home-progress-bar" class="bg-gradient-to-r from-brand-blue to-brand-green h-full w-0 transition-all duration-500"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 font-bold">
+                    <span id="home-progress-text">0 / 6 Aktivitas Selesai</span>
+                    <span id="home-percent-text">0% Selesai</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: MATERI -->
+        <section id="sec-materi" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl card-shadow border border-slate-100">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <span class="bg-sky-100 text-sky-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Materi Pembelajaran</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-2">Mengenal 3 Jenis Majas Utamamu</h2>
+                    <p class="text-slate-600 text-sm mt-1">Majas adalah gaya bahasa indah yang digunakan untuk memperjelas atau mempercantik kalimat.</p>
+                </div>
+
+                <!-- Tabs Materi -->
+                <div class="flex justify-center border-b border-slate-200 mb-6 gap-2 sm:gap-4">
+                    <button onclick="showMateriDetail('personifikasi')" id="btn-mat-personifikasi" class="materi-tab-btn pb-3 px-4 font-bold border-b-4 border-brand-orange text-brand-orange">
+                        1. Personifikasi
+                    </button>
+                    <button onclick="showMateriDetail('hiperbola')" id="btn-mat-hiperbola" class="materi-tab-btn pb-3 px-4 font-bold border-b-4 border-transparent text-slate-500 hover:text-slate-800">
+                        2. Hiperbola
+                    </button>
+                    <button onclick="showMateriDetail('metafora')" id="btn-mat-metafora" class="materi-tab-btn pb-3 px-4 font-bold border-b-4 border-transparent text-slate-500 hover:text-slate-800">
+                        3. Metafora
+                    </button>
+                </div>
+
+                <!-- Detail Content Boxes -->
+                <div id="materi-content-box" class="min-h-[300px]">
+                    <!-- Dynamic populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: SIMULASI -->
+        <section id="sec-simulasi" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl card-shadow border border-slate-100">
+                <div class="text-center max-w-2xl mx-auto mb-6">
+                    <span class="bg-purple-100 text-purple-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Laboratorium Bahasa</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-2">🔬 Simulasi Perubah Gaya Bahasa</h2>
+                    <p class="text-slate-600 text-sm mt-1">Ubah tingkat imajinasi kalimat dan amati bagaimana efeknya terhadap makna kalimat secara nyata!</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <!-- Controls -->
+                    <div class="lg:col-span-5 bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-6">
+                        <div>
+                            <label class="block font-extrabold text-sm text-slate-700 mb-2">1. Pilih Objek Subjek Utama:</label>
+                            <select id="sim-subject" onchange="updateSimulation()" class="w-full bg-white border-2 border-slate-200 rounded-2xl p-3 font-bold text-slate-700 focus:outline-none focus:border-brand-blue">
+                                <option value="angin">🌬️ Angin Malam</option>
+                                <option value="ombak">🌊 Ombak Laut</option>
+                                <option value="pena">✍️ Pena Penulis</option>
+                                <option value="tangis">😢 Tangisan Anak</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-sm text-slate-700 mb-2">2. Geser Mode Majas:</label>
+                            <input type="range" id="sim-slider" min="0" max="3" step="1" value="0" oninput="updateSimulation()" class="w-full accent-brand-orange h-3 bg-slate-200 rounded-lg cursor-pointer">
+                            <div class="flex justify-between text-xs font-black text-slate-500 mt-2">
+                                <span>Biasa</span>
+                                <span>Personifikasi</span>
+                                <span>Hiperbola</span>
+                                <span>Metafora</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-white rounded-2xl border border-slate-200">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Kata Kunci Utama</p>
+                            <p id="sim-keyword" class="text-sm font-extrabold text-brand-purple mt-1">Kalimat Wajar Tanpa Kiasan</p>
+                        </div>
+                    </div>
+
+                    <!-- Output Visual Card -->
+                    <div class="lg:col-span-7 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 sm:p-8 rounded-3xl border-2 border-indigo-200 text-center relative overflow-hidden">
+                        <div id="sim-visual-icon" class="text-7xl mb-4 transform transition-all duration-300">
+                            🌬️
+                        </div>
+
+                        <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-white shadow-sm inline-block max-w-full">
+                            <h4 id="sim-majas-type" class="text-xs font-black uppercase tracking-widest text-brand-orange mb-1">KONDISI: KALIMAT BIASA</h4>
+                            <p id="sim-sentence" class="text-xl sm:text-2xl font-black text-slate-800 italic">
+                                "Angin berembus sangat kencang malam ini."
+                            </p>
+                        </div>
+
+                        <div class="mt-6 text-left bg-white p-4 rounded-2xl border border-indigo-100">
+                            <h5 class="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info text-brand-blue"></i> Analisis Sebab - Akibat:
+                            </h5>
+                            <p id="sim-explanation" class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                                Kalimat ini menyampaikan fakta apa adanya tanpa gaya bahasa atau kiasan tertentu.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: PERMAINAN (GAMES) -->
+        <section id="sec-permainan" class="tab-content hidden space-y-6">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="bg-emerald-100 text-emerald-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Arena Tantangan</span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">🎮 Pusat Permainan Majas</h2>
+                <p class="text-slate-600 text-sm">Pilih jenis permainan di bawah ini dan kumpulkan poin terbanyak!</p>
+            </div>
+
+            <!-- Game Mode Cards Menu -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <button onclick="startMiniGame('openbox')" class="bg-white p-4 rounded-2xl border-2 border-sky-200 hover:border-sky-400 card-shadow bounce-hover text-center group">
+                    <div class="w-12 h-12 mx-auto bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                        📦
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-sm">Open the Box</h3>
+                    <p class="text-xs text-slate-500 mt-1">Buka Kotak Ajaib</p>
+                </button>
+
+                <button onclick="startMiniGame('dragdrop')" class="bg-white p-4 rounded-2xl border-2 border-amber-200 hover:border-amber-400 card-shadow bounce-hover text-center group">
+                    <div class="w-12 h-12 mx-auto bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                        🧩
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-sm">Tarik & Kelompokkan</h3>
+                    <p class="text-xs text-slate-500 mt-1">Kelompokkan Majas</p>
+                </button>
+
+                <button onclick="startMiniGame('fillblank')" class="bg-white p-4 rounded-2xl border-2 border-purple-200 hover:border-purple-400 card-shadow bounce-hover text-center group">
+                    <div class="w-12 h-12 mx-auto bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                        ✍️
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-sm">Isi Rumpang</h3>
+                    <p class="text-xs text-slate-500 mt-1">Lengkapi Kata Kosong</p>
+                </button>
+
+                <button onclick="startMiniGame('matching')" class="bg-white p-4 rounded-2xl border-2 border-rose-200 hover:border-rose-400 card-shadow bounce-hover text-center group">
+                    <div class="w-12 h-12 mx-auto bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                        🔗
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-sm">Menjodohkan</h3>
+                    <p class="text-xs text-slate-500 mt-1">Jodohkan Pasangan</p>
+                </button>
+
+                <button onclick="startMiniGame('truefalse')" class="bg-white p-4 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 card-shadow bounce-hover text-center group">
+                    <div class="w-12 h-12 mx-auto bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                        ✔️
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-sm">Benar atau Salah</h3>
+                    <p class="text-xs text-slate-500 mt-1">Detektif Pernyataan</p>
+                </button>
+
+                <button onclick="startMiniGame('speed')" class="bg-gradient-to-br from-brand-orange to-brand-pink text-white p-4 rounded-2xl card-shadow bounce-hover text-center group col-span-2 sm:col-span-1">
+                    <div class="w-12 h-12 mx-auto bg-white/20 rounded-xl flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition">
+                        ⚡
+                    </div>
+                    <h3 class="font-extrabold text-sm">Tantangan Cepat</h3>
+                    <p class="text-xs text-amber-100 mt-1">Adipacu Timer 15dtk!</p>
+                </button>
+            </div>
+
+            <!-- Active Game Display Stage -->
+            <div id="game-stage" class="bg-white p-6 sm:p-8 rounded-3xl card-shadow border border-slate-200 min-h-[400px] relative">
+                <div id="game-placeholder" class="text-center py-12">
+                    <i class="fa-solid fa-gamepad text-6xl text-slate-300 mb-4 animate-pulse"></i>
+                    <h3 class="text-xl font-bold text-slate-600">Pilih salah satu permainan di atas untuk memulai!</h3>
+                </div>
+
+                <div id="game-active-area" class="hidden">
+                    <!-- Dynamic game layout rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: KUIS -->
+        <section id="sec-kuis" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl card-shadow border border-slate-100">
+                <div class="flex flex-wrap justify-between items-center pb-4 border-b border-slate-200 gap-4">
+                    <div>
+                        <span class="bg-indigo-100 text-indigo-700 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Evaluasi Akhir</span>
+                        <h2 class="text-2xl font-black text-slate-800 mt-1">📝 Kuis Evaluasi Majas</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="quiz-progress-badge" class="bg-slate-100 text-slate-700 font-extrabold px-4 py-2 rounded-xl text-sm">
+                            Soal 1 / 5
+                        </span>
+                    </div>
+                </div>
+
+                <div id="quiz-container" class="mt-6 space-y-6">
+                    <!-- Question Prompt -->
+                    <div class="bg-sky-50 p-6 rounded-2xl border border-sky-100">
+                        <p id="quiz-question-text" class="text-lg sm:text-xl font-extrabold text-slate-800">
+                            <!-- Question text populated here -->
+                        </p>
+                    </div>
+
+                    <!-- Options Grid -->
+                    <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Dynamic Options Buttons -->
+                    </div>
+
+                    <!-- Feedback Box -->
+                    <div id="quiz-feedback-box" class="hidden p-4 rounded-2xl text-sm font-bold border">
+                        <!-- Populated dynamic feedback -->
+                    </div>
+
+                    <!-- Quiz Navigation Control -->
+                    <div class="flex justify-end pt-4">
+                        <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="hidden bg-brand-orange hover:bg-amber-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow bounce-hover">
+                            Lanjut Soal Berikutnya <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: HASIL & PENGHARGAAN -->
+        <section id="sec-hasil" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl card-shadow border border-slate-100 text-center">
+                <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border-4 border-amber-200">
+                    🏆
+                </div>
+                <h2 class="text-3xl font-black text-slate-800">Papan Penghargaan Siswa</h2>
+                <p class="text-slate-600 text-sm mt-1">Lihat pencapaian dan lencana yang berhasil kamu kumpulkan!</p>
+
+                <!-- Final Score Card -->
+                <div class="my-6 max-w-md mx-auto bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-3xl p-6 text-white shadow-lg">
+                    <p class="text-xs font-bold uppercase tracking-wider text-sky-100">Total Skor Terkumpul</p>
+                    <div id="final-score-val" class="text-5xl font-black my-2">0</div>
+                    <p id="final-motivation-msg" class="text-sm font-semibold text-sky-100 mt-2">
+                        Ayo terus belajar dan selesaikan semua aktivitas!
+                    </p>
+                </div>
+
+                <!-- Badges Collection Grid -->
+                <h3 class="font-extrabold text-slate-800 text-lg mb-4 text-left">Lencana Keahlian:</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div id="badge-1" class="badge-card bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl opacity-50 grayscale transition">
+                        <div class="text-3xl mb-1">🌿</div>
+                        <h4 class="font-bold text-xs text-slate-800">Detektif Alam</h4>
+                        <p class="text-[10px] text-slate-500">Kuasai Personifikasi</p>
+                    </div>
+
+                    <div id="badge-2" class="badge-card bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl opacity-50 grayscale transition">
+                        <div class="text-3xl mb-1">💥</div>
+                        <h4 class="font-bold text-xs text-slate-800">Raja Dramatis</h4>
+                        <p class="text-[10px] text-slate-500">Kuasai Hiperbola</p>
+                    </div>
+
+                    <div id="badge-3" class="badge-card bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl opacity-50 grayscale transition">
+                        <div class="text-3xl mb-1">💎</div>
+                        <h4 class="font-bold text-xs text-slate-800">Penyair Cilik</h4>
+                        <p class="text-[10px] text-slate-500">Kuasai Metafora</p>
+                    </div>
+
+                    <div id="badge-4" class="badge-card bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl opacity-50 grayscale transition">
+                        <div class="text-3xl mb-1">⚡</div>
+                        <h4 class="font-bold text-xs text-slate-800">Kilat Bahasa</h4>
+                        <p class="text-[10px] text-slate-500">Selesaikan Tantangan Cepat</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-100 flex justify-center gap-4">
+                    <button onclick="resetAllProgress()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-5 py-2.5 rounded-xl text-xs transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Ulang Progress Belajar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-sky-100 py-4 text-center text-xs text-slate-500 font-medium">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 Petualangan Majas - Media Pembelajaran Interaktif SD Kelas 5</p>
+            <p class="font-bold text-brand-orange">Ceria • Modern • Edukatif</p>
+        </div>
+    </footer>
+
+    <script>
+        /* SOUND FX GENERATOR (Web Audio API) */
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); // A5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'pop') {
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-lg';
+                playSound('pop');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-lg text-rose-500';
+            }
+        }
+
+        /* GLOBAL STATE */
+        let state = {
+            score: 0,
+            completedGames: new Set(),
+            badges: new Set(),
+            quizCurrentIndex: 0,
+            quizScore: 0
+        };
+
+        /* TAB NAVIGATION SYSTEM */
+        function switchTab(tabId) {
+            playSound('pop');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = 'nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 text-slate-600 hover:bg-white transition';
+            });
+
+            const activeContent = document.getElementById(`sec-${tabId}`);
+            if (activeContent) activeContent.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = 'nav-btn px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 bg-brand-blue text-white shadow';
+            }
+
+            if (tabId === 'materi') showMateriDetail('personifikasi');
+            if (tabId === 'simulasi') updateSimulation();
+            if (tabId === 'kuis') loadQuizQuestion();
+            if (tabId === 'hasil') updateResultsPage();
+        }
+
+        function addScore(pts) {
+            state.score += pts;
+            document.getElementById('user-score').textContent = state.score;
+            updateLevelTitle();
+            updateProgressBars();
+        }
+
+        function updateLevelTitle() {
+            const levelEl = document.getElementById('user-level');
+            if (state.score < 50) levelEl.textContent = "Pemula 🌱";
+            else if (state.score < 120) levelEl.textContent = "Detektif Cilik 🔍";
+            else if (state.score < 250) levelEl.textContent = "Master Majas 🌟";
+            else levelEl.textContent = "Penyair Agung 👑";
+        }
+
+        function updateProgressBars() {
+            const totalTasks = 6; // 6 activity types
+            const count = state.completedGames.size;
+            const percent = Math.min(100, Math.round((count / totalTasks) * 100));
+
+            const bar = document.getElementById('home-progress-bar');
+            if (bar) bar.style.width = `${percent}%`;
+
+            const text = document.getElementById('home-progress-text');
+            if (text) text.textContent = `${count} / ${totalTasks} Aktivitas Selesai`;
+
+            const ptext = document.getElementById('home-percent-text');
+            if (ptext) ptext.textContent = `${percent}% Selesai`;
+        }
+
+        const materiData = {
+            personifikasi: {
+                title: "Majas Personifikasi",
+                tagline: "Menganggap Benda Mati Berperilaku Seperti Manusia",
+                color: "amber",
+                icon: "🌳",
+                definition: "Majas Personifikasi adalah gaya bahasa yang menggambarkan benda-benda mati seolah-olah memiliki sifat, perasaan, atau perilaku seperti manusia hidup.",
+                examples: [
+                    "<b>Angin malam berbisik</b> lembut di telingaku.",
+                    "<b>Awan menangis</b> membasahi bumi siang ini.",
+                    "<b>Pena itu menari-nari</b> di atas kertas putih."
+                ],
+                tip: "💡 <b>Tips Cepat:</b> Bayangkan apakah benda tersebut bisa melakukan hal itu secara nyata? Jika angin 'berbisik', itu personifikasi karena angin tidak punya mulut!"
+            },
+            hiperbola: {
+                title: "Majas Hiperbola",
+                tagline: "Menggunakan Kata-kata yang Sangat Berlebihan",
+                color: "purple",
+                icon: "🚀",
+                definition: "Majas Hiperbola adalah gaya bahasa yang menyatakan sesuatu secara berlebihan dan dramatis dari kenyataan sebenarnya untuk menekankan rasa atau kesan tertentu.",
+                examples: [
+                    "Suaranya yang keras <b>menggelegar membelah bumi</b>.",
+                    "Ibu berjuang <b>membanting tulang</b> demi anak-anaknya.",
+                    "Pria itu berlari <b>secepat kilat</b> menembus badai."
+                ],
+                tip: "💡 <b>Tips Cepat:</b> Apakah pernyataan tersebut masuk akal secara fisik? 'Membelah bumi' jelas sangat berlebihan!"
+            },
+            metafora: {
+                title: "Majas Metafora",
+                tagline: "Pembandingan Langsung Tanpa Kata Pembanding",
+                color: "emerald",
+                icon: "💎",
+                definition: "Majas Metafora adalah gaya bahasa yang membandingkan dua hal secara langsung berdasarkan kemiripan sifat tanpa menggunakan kata 'seperti', 'bagaikan', atau 'bak'.",
+                examples: [
+                    "Rani adalah <b>anak emas</b> Pak Guru di sekolah. <i>(Anak kesayangan)</i>",
+                    "Perpustakaan adalah <b>gudang ilmu</b> pengetahuan. <i>(Tempat penyimpanan ilmu)</i>",
+                    "<b>Raja siang</b> telah terbit di ufuk timur. <i>(Matahari)</i>"
+                ],
+                tip: "💡 <b>Tips Cepat:</b> Metafora mengganti kata asli dengan ungkapan pembanding langsung (Anak Emas = Kesayangan)."
+            }
+        };
+
+        function showMateriDetail(type) {
+            playSound('pop');
+            const data = materiData[type];
+            const contentBox = document.getElementById('materi-content-box');
+
+            // Update Tab Style
+            document.querySelectorAll('.materi-tab-btn').forEach(btn => {
+                btn.className = 'materi-tab-btn pb-3 px-4 font-bold border-b-4 border-transparent text-slate-500 hover:text-slate-800';
+            });
+            document.getElementById(`btn-mat-${type}`).className = `materi-tab-btn pb-3 px-4 font-bold border-b-4 border-brand-orange text-brand-orange`;
+
+            contentBox.innerHTML = `
+                <div class="pop-in space-y-6">
+                    <div class="flex items-center space-x-4 bg-${data.color}-50 p-4 rounded-2xl border border-${data.color}-200">
+                        <span class="text-4xl">${data.icon}</span>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800">${data.title}</h3>
+                            <p class="text-xs font-bold text-${data.color}-700">${data.tagline}</p>
+                        </div>
+                    </div>
+
+                    <div class="text-slate-700 space-y-3 leading-relaxed">
+                        <h4 class="font-bold text-sm uppercase text-slate-400">Pengertian:</h4>
+                        <p class="bg-slate-50 p-4 rounded-2xl border border-slate-100 font-medium">${data.definition}</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h4 class="font-bold text-sm uppercase text-slate-400">Contoh Kalimat:</h4>
+                        <ul class="space-y-2">
+                            ${data.examples.map(ex => `
+                                <li class="flex items-center space-x-3 bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="text-emerald-500 font-bold">✓</span>
+                                    <span class="text-sm text-slate-700">${ex}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs sm:text-sm text-amber-900 font-medium">
+                        ${data.tip}
+                    </div>
+                </div>
+            `;
+        }
+
+        const simulationDatabase = {
+            angin: [
+                { type: "Biasa", label: "KONDISI: KALIMAT BIASA", text: "Angin malam berembus sangat kencang.", icon: "🌬️", desc: "Menyampaikan fakta kondisi cuaca apa adanya tanpa kiasan." },
+                { type: "Personifikasi", label: "MAJAS PERSONIFIKASI", text: "Angin malam berbisik lembut menyampaikan pesan rindu.", icon: "💬", desc: "Angin seolah-olah memiliki mulut dan perasaan manusia untuk 'berbisik'." },
+                { type: "Hiperbola", label: "MAJAS HIPERBOLA", text: "Angin malam berembus mampu meruntuhkan gunung batu.", icon: "💥", desc: "Sangat berlebihan karena angin malam biasa tidak mungkin meruntuhkan gunung." },
+                { type: "Metafora", label: "MAJAS METAFORA", text: "Angin malam adalah nafas dingin dari alam semesta.", icon: "🌌", desc: "Membandingkan angin secara langsung sebagai 'nafas dingin'." }
+            ],
+            ombak: [
+                { type: "Biasa", label: "KONDISI: KALIMAT BIASA", text: "Ombak laut bergulung menuju pinggir pantai.", icon: "🌊", desc: "Kalimat deskriptif biasa mengenai pergerakan air laut." },
+                { type: "Personifikasi", label: "MAJAS PERSONIFIKASI", text: "Ombak laut kejar-kejaran dan menari di tepi pantai.", icon: "🕺", desc: "Ombak dianggap seperti anak-anak yang sedang 'kejar-kejaran dan menari'." },
+                { type: "Hiperbola", label: "MAJAS HIPERBOLA", text: "Ombak laut bergulung setinggi langit biru.", icon: "⚡", desc: "Tingginya dibesar-besarkan hingga 'setinggi langit'." },
+                { type: "Metafora", label: "MAJAS METAFORA", text: "Ombak laut adalah tarian perak di tengah lautan.", icon: "💎", desc: "Ombak langsung dinamai 'tarian perak'." }
+            ],
+            pena: [
+                { type: "Biasa", label: "KONDISI: KALIMAT BIASA", text: "Saya menulis cerita menggunakan pena ini.", icon: "✍️", desc: "Kalimat langsung tentang fungsi alat tulis." },
+                { type: "Personifikasi", label: "MAJAS PERSONIFIKASI", text: "Pena ini menari gembira di atas lembaran kertas.", icon: "🎨", desc: "Pena mati seolah bisa 'menari gembira'." },
+                { type: "Hiperbola", label: "MAJAS HIPERBOLA", text: "Tinta pena ini mengalir bagaikan lautan tanpa tepi.", icon: "🌊", desc: "Jumlah tinta dibesar-besarkan hingga seukuran 'lautan'." },
+                { type: "Metafora", label: "MAJAS METAFORA", text: "Pena adalah pedang tajam bagi seorang penulis.", icon: "⚔️", desc: "Pena dibandingkan secara langsung dengan 'pedang tajam'." }
+            ],
+            tangis: [
+                { type: "Biasa", label: "KONDISI: KALIMAT BIASA", text: "Anak kecil itu menangis karena balonnya meletus.", icon: "😢", desc: "Menjelaskan sebab akibat biasa tanpa kiasan." },
+                { type: "Personifikasi", label: "MAJAS PERSONIFIKASI", text: "Air matanya mengetuk lantai dengan kesedihan.", icon: "🚪", desc: "Tetes air mata dianggap dapat 'mengetuk'." },
+                { type: "Hiperbola", label: "MAJAS HIPERBOLA", text: "Air matanya mengalir deras membanjiri seluruh ruangan.", icon: "🌊", desc: "Jumlah air mata dibesar-besarkan hingga membanjiri ruangan." },
+                { type: "Metafora", label: "MAJAS METAFORA", text: "Tangisannya adalah sungai duka yang mengalir.", icon: "🏞️", desc: "Tangisan langsung disamakan dengan 'sungai duka'." }
+            ]
+        };
+
+        function updateSimulation() {
+            const subject = document.getElementById('sim-subject').value;
+            const sliderVal = parseInt(document.getElementById('sim-slider').value);
+            const data = simulationDatabase[subject][sliderVal];
+
+            document.getElementById('sim-visual-icon').textContent = data.icon;
+            document.getElementById('sim-majas-type').textContent = data.label;
+            document.getElementById('sim-sentence').textContent = `"${data.text}"`;
+            document.getElementById('sim-explanation').textContent = data.desc;
+            document.getElementById('sim-keyword').textContent = data.type;
+            playSound('pop');
+        }
+
+        function startMiniGame(type) {
+            playSound('pop');
+            const placeholder = document.getElementById('game-placeholder');
+            const activeArea = document.getElementById('game-active-area');
+
+            placeholder.classList.add('hidden');
+            activeArea.classList.remove('hidden');
+
+            if (type === 'openbox') renderOpenBoxGame();
+            else if (type === 'dragdrop') renderDragDropGame();
+            else if (type === 'fillblank') renderFillBlankGame();
+            else if (type === 'matching') renderMatchingGame();
+            else if (type === 'truefalse') renderTrueFalseGame();
+            else if (type === 'speed') renderSpeedGame();
+        }
+
+        /* 1. OPEN THE BOX GAME */
+        const openBoxData = [
+            { phrase: "Awan hitam menangis menurunkan airnya.", answer: "Personifikasi", exp: "Awan dianggap bisa 'menangis' seperti manusia." },
+            { phrase: "Suara nyanyiannya membelah angkasa.", answer: "Hiperbola", exp: "Dramatis dan sangat berlebihan ('membelah angkasa')." },
+            { phrase: "Ibu adalah malaikat pelindung keluargaku.", answer: "Metafora", exp: "Ibu secara langsung dibandingkan sebagai 'malaikat pelindung'." },
+            { phrase: "Pena itu menari-nari di atas buku.", answer: "Personifikasi", exp: "Pena mati seolah dapat 'menari'." },
+            { phrase: "Harga kebutuhan pokok meroket ke langit.", answer: "Hiperbola", exp: "Harga dianggap naik sangat berlebihan 'ke langit'." }
+        ];
+
+        function renderOpenBoxGame() {
+            const activeArea = document.getElementById('game-active-area');
+            activeArea.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-800">📦 Open the Box: Buka Kotak Ajaib!</h3>
+                        <span class="text-xs bg-sky-100 text-sky-700 font-bold px-3 py-1 rounded-full">5 Kotak</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Klik kotak untuk membuka kalimat kiasan, lalu pilih majas yang tepat!</p>
+
+                    <div id="boxes-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                        ${openBoxData.map((item, idx) => `
+                            <button onclick="openBoxItem(${idx})" id="box-btn-${idx}" class="bg-gradient-to-br from-amber-400 to-brand-orange text-white h-28 rounded-2xl font-black text-2xl shadow-md bounce-hover flex flex-col items-center justify-center gap-1">
+                                <span>🎁</span>
+                                <span class="text-xs font-extrabold">Kotak ${idx + 1}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div id="box-modal" class="hidden bg-slate-50 p-6 rounded-2xl border-2 border-slate-200">
+                        <!-- Populated by click -->
+                    </div>
+                </div>
+            `;
+        }
+
+        function openBoxItem(idx) {
+            playSound('pop');
+            const item = openBoxData[idx];
+            const modal = document.getElementById('box-modal');
+            modal.classList.remove('hidden');
+
+            modal.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-xs font-bold uppercase text-brand-orange">Kotak #${idx + 1}: Kalimat Rahasia</p>
+                    <p class="text-lg font-extrabold text-slate-800">"${item.phrase}"</p>
+                    <p class="text-xs text-slate-500">Pilihlah Majas yang paling tepat untuk kalimat di atas:</p>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="checkOpenBoxAnswer(${idx}, 'Personifikasi')" class="bg-white border-2 border-slate-200 hover:border-brand-blue font-bold p-3 rounded-xl text-xs sm:text-sm">Personifikasi</button>
+                        <button onclick="checkOpenBoxAnswer(${idx}, 'Hiperbola')" class="bg-white border-2 border-slate-200 hover:border-brand-blue font-bold p-3 rounded-xl text-xs sm:text-sm">Hiperbola</button>
+                        <button onclick="checkOpenBoxAnswer(${idx}, 'Metafora')" class="bg-white border-2 border-slate-200 hover:border-brand-blue font-bold p-3 rounded-xl text-xs sm:text-sm">Metafora</button>
+                    </div>
+                    <div id="box-feedback-${idx}" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                </div>
+            `;
+        }
+
+        function checkOpenBoxAnswer(idx, userAns) {
+            const item = openBoxData[idx];
+            const fb = document.getElementById(`box-feedback-${idx}`);
+            const btn = document.getElementById(`box-btn-${idx}`);
+            fb.classList.remove('hidden');
+
+            if (userAns === item.answer) {
+                playSound('correct');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = `🎉 Benar! (${item.exp})`;
+                btn.className = "bg-emerald-500 text-white h-28 rounded-2xl font-black text-2xl shadow-md flex flex-col items-center justify-center gap-1 opacity-70 cursor-not-allowed";
+                btn.innerHTML = `<span>✅</span><span class="text-xs">Selesai</span>`;
+                btn.onclick = null;
+                addScore(20);
+                state.completedGames.add('openbox');
+            } else {
+                playSound('wrong');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200";
+                fb.innerHTML = `❌ Kurang Tepat! Coba analisis kembali hubungannya.`;
+            }
+        }
+
+        /* 2. DRAG & DROP / KLIK KATEGORI GAME */
+        const dragItemsData = [
+            { id: 1, text: "Ombak berkejaran ke pantai", type: "Personifikasi" },
+            { id: 2, text: "Cinta ibu sepanjang masa", type: "Hiperbola" },
+            { id: 3, text: "Raja siang bersinar terang", type: "Metafora" },
+            { id: 4, text: "Matahari tersenyum menyapa", type: "Personifikasi" },
+            { id: 5, text: "Keringatnya mengalir bagai sungai", type: "Hiperbola" }
+        ];
+        let selectedDragItem = null;
+
+        function renderDragDropGame() {
+            const activeArea = document.getElementById('game-active-area');
+            activeArea.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-800">🧩 Kelompokkan Majas (Tarik / Klik)</h3>
+                        <span class="text-xs bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full">5 Item</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Klik salah satu kalimat di bawah, lalu klik wadah kategori majas yang sesuai!</p>
+
+                    <!-- Draggable Items -->
+                    <div id="drag-items-pool" class="flex flex-wrap gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 min-h-[80px]">
+                        ${dragItemsData.map(item => `
+                            <button onclick="selectDragItem(${item.id})" id="drag-item-${item.id}" class="drag-item-btn bg-white border-2 border-sky-200 hover:border-sky-400 font-bold px-4 py-2 rounded-xl text-xs text-slate-700 shadow-sm transition">
+                                📄 ${item.text}
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Drop Target Buckets -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div onclick="dropIntoBucket('Personifikasi')" class="bg-amber-50 border-2 border-dashed border-amber-300 p-4 rounded-2xl text-center cursor-pointer hover:bg-amber-100 transition min-h-[120px]">
+                            <h4 class="font-black text-amber-800 text-sm mb-2">🌳 Personifikasi</h4>
+                            <div id="bucket-Personifikasi" class="space-y-1 text-xs"></div>
+                        </div>
+
+                        <div onclick="dropIntoBucket('Hiperbola')" class="bg-purple-50 border-2 border-dashed border-purple-300 p-4 rounded-2xl text-center cursor-pointer hover:bg-purple-100 transition min-h-[120px]">
+                            <h4 class="font-black text-purple-800 text-sm mb-2">🚀 Hiperbola</h4>
+                            <div id="bucket-Hiperbola" class="space-y-1 text-xs"></div>
+                        </div>
+
+                        <div onclick="dropIntoBucket('Metafora')" class="bg-emerald-50 border-2 border-dashed border-emerald-300 p-4 rounded-2xl text-center cursor-pointer hover:bg-emerald-100 transition min-h-[120px]">
+                            <h4 class="font-black text-emerald-800 text-sm mb-2">💎 Metafora</h4>
+                            <div id="bucket-Metafora" class="space-y-1 text-xs"></div>
+                        </div>
+                    </div>
+
+                    <div id="drag-feedback" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                </div>
+            `;
+        }
+
+        function selectDragItem(id) {
+            playSound('pop');
+            selectedDragItem = dragItemsData.find(i => i.id === id);
+            document.querySelectorAll('.drag-item-btn').forEach(btn => btn.classList.remove('ring-4', 'ring-brand-blue'));
+            const activeBtn = document.getElementById(`drag-item-${id}`);
+            if (activeBtn) activeBtn.classList.add('ring-4', 'ring-brand-blue');
+        }
+
+        function dropIntoBucket(targetCategory) {
+            if (!selectedDragItem) return;
+
+            const fb = document.getElementById('drag-feedback');
+            fb.classList.remove('hidden');
+
+            if (selectedDragItem.type === targetCategory) {
+                playSound('correct');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = `🎉 Tepat sekali! "${selectedDragItem.text}" adalah ${targetCategory}.`;
+
+                const bucket = document.getElementById(`bucket-${targetCategory}`);
+                bucket.innerHTML += `<div class="bg-white p-2 rounded-lg border border-slate-200 font-bold text-slate-700 shadow-sm">✓ ${selectedDragItem.text}</div>`;
+
+                const itemBtn = document.getElementById(`drag-item-${selectedDragItem.id}`);
+                if (itemBtn) itemBtn.remove();
+
+                addScore(20);
+                selectedDragItem = null;
+                state.completedGames.add('dragdrop');
+            } else {
+                playSound('wrong');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200";
+                fb.innerHTML = `❌ Kurang tepat! "${selectedDragItem.text}" bukan majas ${targetCategory}. Coba lagi!`;
+            }
+        }
+
+        /* 3. FILL IN THE BLANK GAME */
+        const fillBlankData = [
+            { text: "Bintang di langit ____ malam ini.", options: ["tersenyum gembira", "bersinar terang", "sangat jauh"], ans: "tersenyum gembira", type: "Personifikasi" },
+            { text: "Hatinya ____ mendengar kabar duka itu.", options: ["hancur berkeping-keping", "agak sedih", "biasa saja"], ans: "hancur berkeping-keping", type: "Hiperbola" },
+            { text: "Budi adalah ____ di kelas 5 SD.", options: ["bintang kelas", "murid pintar", "anak rajin"], ans: "bintang kelas", type: "Metafora" },
+            { text: "Pena penulis itu ____ di atas kertas.", options: ["menari-nari", "dipakai", "dipegang"], ans: "menari-nari", type: "Personifikasi" },
+            { text: "Suara petir ____ membelah bumi.", options: ["menggelegar", "terdengar", "pelan"], ans: "menggelegar", type: "Hiperbola" }
+        ];
+
+        function renderFillBlankGame() {
+            const activeArea = document.getElementById('game-active-area');
+            activeArea.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-800">✍️ Isi Rumpang: Lengkapi Majas</h3>
+                        <span class="text-xs bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-full">5 Soal</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Pilih frasa yang tepat untuk membentuk gaya bahasa yang dimaksud!</p>
+
+                    <div class="space-y-4">
+                        ${fillBlankData.map((q, idx) => `
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                                <p class="text-sm font-extrabold text-slate-800">${idx + 1}. ${q.text.replace('____', '<span id="blank-' + idx + '" class="underline text-brand-orange font-black">[...]</span>')}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    ${q.options.map(opt => `
+                                        <button onclick="checkFillBlank(${idx}, '${opt}')" class="bg-white border border-slate-200 hover:border-brand-purple font-bold px-3 py-1.5 rounded-xl text-xs text-slate-700">
+                                            ${opt}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                                <div id="fb-feedback-${idx}" class="hidden text-xs font-bold p-2 rounded-lg"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkFillBlank(idx, choice) {
+            const q = fillBlankData[idx];
+            const blank = document.getElementById(`blank-${idx}`);
+            const fb = document.getElementById(`fb-feedback-${idx}`);
+            fb.classList.remove('hidden');
+
+            if (choice === q.ans) {
+                playSound('correct');
+                blank.textContent = choice;
+                fb.className = "text-xs font-bold p-2 rounded-lg bg-emerald-100 text-emerald-800";
+                fb.innerHTML = `🎉 Tepat! Membentuk Majas ${q.type}.`;
+                addScore(20);
+                state.completedGames.add('fillblank');
+            } else {
+                playSound('wrong');
+                fb.className = "text-xs font-bold p-2 rounded-lg bg-rose-100 text-rose-800";
+                fb.innerHTML = `❌ Kurang pas untuk membentuk gaya bahasa majas!`;
+            }
+        }
+
+        /* 4. MATCHING GAME */
+        const matchData = [
+            { phrase: "Raja siang terbit", match: "Metafora" },
+            { phrase: "Lari secepat kilat", match: "Hiperbola" },
+            { phrase: "Nyiur melambai-lambai", match: "Personifikasi" },
+            { phrase: "Anak emas pak guru", match: "Metafora" },
+            { phrase: "Membanting tulang", match: "Hiperbola" }
+        ];
+
+        function renderMatchingGame() {
+            const activeArea = document.getElementById('game-active-area');
+            activeArea.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-800">🔗 Menjodohkan Ungkapan & Majas</h3>
+                        <span class="text-xs bg-rose-100 text-rose-700 font-bold px-3 py-1 rounded-full">5 Pasangan</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Pasangkan ungkapan sebelah kiri dengan jenis majas yang sesuai!</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        ${matchData.map((item, idx) => `
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex justify-between items-center gap-2">
+                                <span class="text-xs font-extrabold text-slate-800">"${item.phrase}"</span>
+                                <select onchange="checkMatch(${idx}, this.value)" class="bg-white border border-slate-300 font-bold text-xs rounded-xl p-2 focus:outline-none focus:border-brand-blue">
+                                    <option value="">-- Pilih --</option>
+                                    <option value="Personifikasi">Personifikasi</option>
+                                    <option value="Hiperbola">Hiperbola</option>
+                                    <option value="Metafora">Metafora</option>
+                                </select>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div id="matching-feedback" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                </div>
+            `;
+        }
+
+        function checkMatch(idx, val) {
+            const target = matchData[idx];
+            const fb = document.getElementById('matching-feedback');
+            fb.classList.remove('hidden');
+
+            if (val === target.match) {
+                playSound('correct');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = `🎉 Jodoh yang tepat! "${target.phrase}" adalah ${val}.`;
+                addScore(20);
+                state.completedGames.add('matching');
+            } else if (val !== "") {
+                playSound('wrong');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200";
+                fb.innerHTML = `❌ Pasangan belum sesuai. Coba periksa kembali!`;
+            }
+        }
+
+        /* 5. TRUE / FALSE GAME */
+        const tfData = [
+            { stmt: "'Belatung tersenyum gembira' termasuk Majas Personifikasi.", ans: true, exp: "Benar, belatung dianggap bisa 'tersenyum'." },
+            { stmt: "'Dia menangis hingga air matanya menjadi samudra' adalah Majas Metafora.", ans: false, exp: "Salah, kalimat itu adalah Hiperbola (sangat berlebihan)." },
+            { stmt: "'Dewi malam' adalah sebutan metafora untuk Bulan.", ans: true, exp: "Benar, pembandingan langsung tanpa kata seperti." },
+            { stmt: "Majas Hiperbola adalah gaya bahasa yang memperkecil kenyataan.", ans: false, exp: "Salah, Hiperbola melebih-lebihkan kenyataan." },
+            { stmt: "'Pena itu menari' adalah contoh Personifikasi.", ans: true, exp: "Benar, benda mati beraksi seperti manusia." }
+        ];
+
+        function renderTrueFalseGame() {
+            const activeArea = document.getElementById('game-active-area');
+            activeArea.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-800">✔️ Benar atau Salah (Detektif Bahasa)</h3>
+                        <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full">5 Soal</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        ${tfData.map((item, idx) => `
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                                <p class="text-sm font-extrabold text-slate-800">${idx + 1}. ${item.stmt}</p>
+                                <div class="flex gap-3">
+                                    <button onclick="checkTF(${idx}, true)" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-4 py-2 rounded-xl text-xs">
+                                        👍 BENAR
+                                    </button>
+                                    <button onclick="checkTF(${idx}, false)" class="bg-rose-500 hover:bg-rose-600 text-white font-black px-4 py-2 rounded-xl text-xs">
+                                        👎 SALAH
+                                    </button>
+                                </div>
+                                <div id="tf-feedback-${idx}" class="hidden p-2 rounded-lg text-xs font-bold"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkTF(idx, userVal) {
+            const item = tfData[idx];
+            const fb = document.getElementById(`tf-feedback-${idx}`);
+            fb.classList.remove('hidden');
+
+            if (userVal === item.ans) {
+                playSound('correct');
+                fb.className = "p-2 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800";
+                fb.innerHTML = `🎉 Tepat! ${item.exp}`;
+                addScore(20);
+                state.completedGames.add('truefalse');
+            } else {
+                playSound('wrong');
+                fb.className = "p-2 rounded-lg text-xs font-bold bg-rose-100 text-rose-800";
+                fb.innerHTML = `❌ Kurang Tepat! ${item.exp}`;
+            }
+        }
+
+        /* 6. SPEED CHALLENGE GAME WITH TIMER */
+        let speedTimerInterval = null;
+        let speedTimeLeft = 15;
+
+        function renderSpeedGame() {
+            const activeArea = document.getElementById('game-active-area');
+            speedTimeLeft = 15;
+
+            activeArea.innerHTML = `
+                <div class="space-y-6 text-center">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-800">⚡ Tantangan Cepat (Speed Blitz)</h3>
+                        <div class="bg-rose-100 text-rose-700 font-extrabold px-4 py-1.5 rounded-full text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-clock animate-spin"></i>
+                            <span id="speed-timer-count">15</span> detik
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl text-white space-y-4">
+                        <p class="text-xs uppercase font-bold tracking-widest text-indigo-200">Soal Kilat</p>
+                        <p class="text-xl font-black">"Mobil itu berlari secepat kilat menembus kegelapan."</p>
+                        <p class="text-xs text-indigo-100">Apakah Jenis Majas Kalimat Di Atas?</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="answerSpeed('Personifikasi')" class="bg-white border-2 border-slate-200 hover:border-brand-orange font-black py-4 rounded-2xl text-xs sm:text-sm text-slate-700">Personifikasi</button>
+                        <button onclick="answerSpeed('Hiperbola')" class="bg-white border-2 border-slate-200 hover:border-brand-orange font-black py-4 rounded-2xl text-xs sm:text-sm text-slate-700">Hiperbola</button>
+                        <button onclick="answerSpeed('Metafora')" class="bg-white border-2 border-slate-200 hover:border-brand-orange font-black py-4 rounded-2xl text-xs sm:text-sm text-slate-700">Metafora</button>
+                    </div>
+
+                    <div id="speed-feedback" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                </div>
+            `;
+
+            clearInterval(speedTimerInterval);
+            speedTimerInterval = setInterval(() => {
+                speedTimeLeft--;
+                const timerEl = document.getElementById('speed-timer-count');
+                if (timerEl) timerEl.textContent = speedTimeLeft;
+
+                if (speedTimeLeft <= 0) {
+                    clearInterval(speedTimerInterval);
+                    playSound('wrong');
+                    const fb = document.getElementById('speed-feedback');
+                    if (fb) {
+                        fb.classList.remove('hidden');
+                        fb.className = "p-3 rounded-xl text-xs font-bold bg-rose-100 text-rose-800";
+                        fb.textContent = "⏱️ Waktu Habis! Ayo coba lagi tantangan kilat ini!";
+                    }
+                }
+            }, 1000);
+        }
+
+        function answerSpeed(ans) {
+            clearInterval(speedTimerInterval);
+            const fb = document.getElementById('speed-feedback');
+            fb.classList.remove('hidden');
+
+            if (ans === 'Hiperbola') {
+                playSound('correct');
+                confetti();
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                fb.innerHTML = `⚡ LUAR BIASA! Kamu menjawab tepat sebelum waktu habis! (+50 Poin)`;
+                addScore(50);
+                state.completedGames.add('speed');
+                state.badges.add('badge-4');
+            } else {
+                playSound('wrong');
+                fb.className = "p-3 rounded-xl text-xs font-bold bg-rose-100 text-rose-800";
+                fb.innerHTML = `❌ Jawaban kurang tepat! Kunci: Hiperbola ('secepat kilat').`;
+            }
+        }
+
+        const quizData = [
+            {
+                q: "1. Manakah di antara kalimat berikut yang menggunakan Majas Personifikasi?",
+                opts: ["Air matanya mengalir bagai sungai.", "Nyiur melambai-lambai di tepi pantai.", "Ia adalah anak emas dalam keluarga."],
+                ans: 1,
+                exp: "Nyiur (pohon kelapa) seolah-olah memiliki tangan yang dapat 'melambai-lambai'."
+            },
+            {
+                q: "2. 'Suaranya menggelegar membelah bumi.' Kalimat ini merupakan contoh majas...",
+                opts: ["Personifikasi", "Metafora", "Hiperbola"],
+                ans: 2,
+                exp: "Pernyataan 'membelah bumi' sangat dramatis dan berlebihan (Hiperbola)."
+            },
+            {
+                q: "3. Istilah 'Anak Emas' memiliki arti...",
+                opts: ["Anak yang terbuat dari emas", "Anak kesayangan", "Anak yang kaya raya"],
+                ans: 1,
+                exp: "Metafora 'Anak Emas' berarti anak kesayangan."
+            },
+            {
+                q: "4. 'Pena itu menari-nari di atas kertas.' Mengapa kalimat ini disebut Personifikasi?",
+                opts: ["Karena pena tersebut terbuat dari kayu", "Karena pena dianggap dapat menari seperti manusia", "Karena kalimatnya sangat panjang"],
+                ans: 1,
+                exp: "Pena adalah benda mati yang diberi sifat bertindak (menari) seperti manusia."
+            },
+            {
+                q: "5. Manakah ungkapan yang termasuk majas Metafora?",
+                opts: ["Raja Siang (Matahari)", "Lari secepat kilat", "Awan menangis"],
+                ans: 0,
+                exp: "'Raja Siang' membandingkan matahari secara langsung tanpa kata pembanding."
+            }
+        ];
+
+        function loadQuizQuestion() {
+            const q = quizData[state.quizCurrentIndex];
+            document.getElementById('quiz-progress-badge').textContent = `Soal ${state.quizCurrentIndex + 1} / ${quizData.length}`;
+            document.getElementById('quiz-question-text').textContent = q.q;
+
+            const grid = document.getElementById('quiz-options-grid');
+            grid.innerHTML = q.opts.map((opt, i) => `
+                <button onclick="selectQuizOption(${i})" class="quiz-opt-btn bg-white border-2 border-slate-200 hover:border-brand-blue font-bold p-4 rounded-2xl text-left text-sm text-slate-700 shadow-sm transition">
+                    ${String.fromCharCode(65 + i)}. ${opt}
+                </button>
+            `).join('');
+
+            document.getElementById('quiz-feedback-box').classList.add('hidden');
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+        }
+
+        function selectQuizOption(optIndex) {
+            const q = quizData[state.quizCurrentIndex];
+            const fbBox = document.getElementById('quiz-feedback-box');
+            const nextBtn = document.getElementById('quiz-next-btn');
+
+            document.querySelectorAll('.quiz-opt-btn').forEach(btn => btn.disabled = true);
+
+            fbBox.classList.remove('hidden');
+
+            if (optIndex === q.ans) {
+                playSound('correct');
+                state.quizScore += 20;
+                addScore(20);
+                fbBox.className = "p-4 rounded-2xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                fbBox.innerHTML = `🎉 JAWABAN BENAR! <p class="text-xs font-normal mt-1">${q.exp}</p>`;
+            } else {
+                playSound('wrong');
+                fbBox.className = "p-4 rounded-2xl text-sm font-bold bg-rose-100 text-rose-800 border border-rose-200";
+                fbBox.innerHTML = `❌ KURANG TEPAT. <p class="text-xs font-normal mt-1">${q.exp}</p>`;
+            }
+
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            state.quizCurrentIndex++;
+            if (state.quizCurrentIndex < quizData.length) {
+                loadQuizQuestion();
+            } else {
+                switchTab('hasil');
+            }
+        }
+
+        function updateResultsPage() {
+            document.getElementById('final-score-val').textContent = state.score;
+
+            const msgEl = document.getElementById('final-motivation-msg');
+            if (state.score >= 200) {
+                msgEl.textContent = "🏆 Luar Biasa! Kamu adalah Pujangga/Penyair Cilik Sejati!";
+                confetti();
+            } else if (state.score >= 100) {
+                msgEl.textContent = "🌟 Hebat! Kamu sudah memahami konsep majas dengan sangat baik!";
+            } else {
+                msgEl.textContent = "🌱 Bagus! Terus tingkatkan dan coba permainan lainnya!";
+            }
+
+            // Unlock badges based on progress
+            if (state.completedGames.has('openbox') || state.completedGames.has('dragdrop')) {
+                document.getElementById('badge-1').classList.remove('opacity-50', 'grayscale');
+            }
+            if (state.completedGames.has('fillblank') || state.completedGames.has('matching')) {
+                document.getElementById('badge-2').classList.remove('opacity-50', 'grayscale');
+            }
+            if (state.completedGames.has('truefalse')) {
+                document.getElementById('badge-3').classList.remove('opacity-50', 'grayscale');
+            }
+            if (state.completedGames.has('speed')) {
+                document.getElementById('badge-4').classList.remove('opacity-50', 'grayscale');
+            }
+        }
+
+        function resetAllProgress() {
+            if (confirm("Apakah kamu yakin ingin mengulang semua skor dan progress belajar?")) {
+                state.score = 0;
+                state.completedGames.clear();
+                state.badges.clear();
+                state.quizCurrentIndex = 0;
+                state.quizScore = 0;
+                document.getElementById('user-score').textContent = "0";
+                updateLevelTitle();
+                updateProgressBars();
+                switchTab('beranda');
+            }
+        }
+
+        /* INITIALIZATION ON WINDOW LOAD */
+        window.onload = function() {
+            showMateriDetail('personifikasi');
+            updateSimulation();
+            updateProgressBars();
+        };
+    </script>
+</body>
+</html>
